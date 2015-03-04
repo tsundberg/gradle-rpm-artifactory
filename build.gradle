@@ -1,0 +1,51 @@
+apply plugin: 'java'
+apply plugin: 'os-package'
+
+version = '1.0.0'
+
+sourceCompatibility = 1.7
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'se.mtm.HelloWorld'
+    }
+}
+
+ospackage {
+    packageName = 'rpm-to-artifactory-example'
+    release = 1
+    os = LINUX
+    user = "root"
+
+    into '/opt/gradle-rpm-artifactory'
+
+    from('bin') {
+        into 'bin'
+        include 'run.sh'
+        fileMode = 0555
+    }
+
+    from('build/libs') {
+        into 'bin'
+        include '*.jar'
+    }
+}
+
+task  uploadRpm {
+    println "Add a hook to upload the generated rpm to a flat yum repo hosted in an Artifactory-pro"
+}
+
+task  deployRpm {
+    it.dependsOn build
+    it.dependsOn buildRpm
+    it.dependsOn uploadRpm
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.netflix.nebula:gradle-ospackage-plugin:2.2.0'
+    }
+}
